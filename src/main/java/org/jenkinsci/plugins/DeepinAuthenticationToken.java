@@ -4,24 +4,24 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.providers.AbstractAuthenticationToken;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.deepin.DeepinOAuthApiService;
+import org.jenkinsci.plugins.deepin.DeepinOAuthApiService.DeepinToken;
 import org.jenkinsci.plugins.deepin.DeepinUser;
-import org.scribe.model.Token;
 
 public class DeepinAuthenticationToken extends AbstractAuthenticationToken {
 
 	private static final long serialVersionUID = -4372773234796292520L;
 
-	private Token accessToken;
-    private DeepinUser bitbucketUser;
+	private DeepinToken accessToken;
+    private DeepinUser deepinUser;
 
 	@SuppressWarnings("deprecation")
-	public DeepinAuthenticationToken(Token accessToken, String apiKey, String apiSecret) {
+	public DeepinAuthenticationToken(DeepinToken accessToken, String apiKey, String apiSecret) {
         this.accessToken = accessToken;
-        this.bitbucketUser = new DeepinOAuthApiService(apiKey, apiSecret).getUserByToken(accessToken);
+        this.deepinUser = new DeepinOAuthApiService(apiKey, apiSecret).getUserByToken(accessToken);
 
         boolean authenticated = false;
 
-        if (bitbucketUser != null) {
+        if (deepinUser != null) {
             authenticated = true;
         }
 
@@ -30,13 +30,13 @@ public class DeepinAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public GrantedAuthority[] getAuthorities() {
-        return this.bitbucketUser != null ? this.bitbucketUser.getAuthorities() : new GrantedAuthority[0];
+        return this.deepinUser != null ? this.deepinUser.getAuthorities() : new GrantedAuthority[0];
     }
 
     /**
      * @return the accessToken
      */
-    public Token getAccessToken() {
+    public DeepinToken getAccessToken() {
         return accessToken;
     }
 
@@ -52,7 +52,7 @@ public class DeepinAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public String getName() {
-        return (bitbucketUser != null ? bitbucketUser.getUsername() : null);
+        return (deepinUser != null ? deepinUser.getUsername() : null);
     }
 
 }

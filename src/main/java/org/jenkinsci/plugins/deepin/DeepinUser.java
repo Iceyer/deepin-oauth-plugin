@@ -5,29 +5,17 @@ import hudson.security.SecurityRealm;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.userdetails.UserDetails;
 
-import com.google.gson.annotations.SerializedName;
-
 public class DeepinUser implements UserDetails {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 5131603161907134731L;
 
 	public class DeepinUserResponce {
-        public DeepinUser user;
+        public DeepinUser data;
     }
 
     public String username;
-    @SerializedName("first_name")
-    public String firstName;
-    @SerializedName("last_name")
-    public String lastName;
-    @SerializedName("is_team")
-    public boolean isTeam;
-    public String avatar;
-    @SerializedName("resource_uri")
-    public String resourceUri;
+    public String email;
+    public String nickname;
 
     public DeepinUser() {
         super();

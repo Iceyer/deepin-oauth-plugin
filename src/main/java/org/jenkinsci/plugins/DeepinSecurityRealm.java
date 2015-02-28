@@ -3,11 +3,10 @@ package org.jenkinsci.plugins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.GroupDetails;
-import hudson.security.SecurityRealm;
 import hudson.security.UserMayOrMayNotExistException;
+import hudson.security.SecurityRealm;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -23,13 +22,13 @@ import org.acegisecurity.userdetails.UserDetailsService;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.deepin.DeepinOAuthApiService;
+import org.jenkinsci.plugins.deepin.DeepinOAuthApiService.DeepinToken;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
-import org.scribe.model.Token;
 import org.springframework.dao.DataAccessException;
 
 import com.thoughtworks.xstream.converters.ConversionException;
@@ -42,7 +41,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 public class DeepinSecurityRealm extends SecurityRealm {
 
     private static final String REFERER_ATTRIBUTE = DeepinSecurityRealm.class.getName() + ".referer";
-    private static final String ACCESS_TOKEN_ATTRIBUTE = DeepinSecurityRealm.class.getName() + ".access_token";
+  //  private static final String ACCESS_TOKEN_ATTRIBUTE = DeepinSecurityRealm.class.getName() + ".access_token";
     private static final Logger LOGGER = Logger.getLogger(DeepinSecurityRealm.class.getName());
 
     private String clientID;
@@ -89,43 +88,26 @@ public class DeepinSecurityRealm extends SecurityRealm {
     }
 
     public HttpResponse doCommenceLogin(StaplerRequest request, @Header("Referer") final String referer) throws IOException {
-
         request.getSession().setAttribute(REFERER_ATTRIBUTE, referer);
-
-        String rootUrl = Hudson.getInstance().getRootUrl();
-        if (StringUtils.endsWith(rootUrl, "/")) {
-            rootUrl = StringUtils.left(rootUrl, StringUtils.length(rootUrl) - 1);
-        }
-        String callback = rootUrl + "/securityRealm/finishLogin";
-
-        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(clientID, clientSecret, callback);
-
-        Token requestToken = DeepinOAuthApiService.createRquestToken();
-        request.getSession().setAttribute(ACCESS_TOKEN_ATTRIBUTE, requestToken);
-
-        return new HttpRedirect(DeepinOAuthApiService.createAuthorizationCodeURL(requestToken));
+        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(clientID, clientSecret);
+        return new HttpRedirect(DeepinOAuthApiService.createOAutuorizeURL());
     }
 
     public HttpResponse doFinishLogin(StaplerRequest request) throws IOException {
-        String code = request.getParameter("oauth_verifier");
-
+        String code = request.getParameter("code");
+        
         if (StringUtils.isBlank(code)) {
             LOGGER.log(Level.SEVERE, "doFinishLogin() code = null");
             return HttpResponses.redirectToContextRoot();
         }
 
-        Token requestToken = (Token) request.getSession().getAttribute(ACCESS_TOKEN_ATTRIBUTE);
+        DeepinToken token = new DeepinOAuthApiService(clientID, clientSecret).getTokenByAuthorizationCode(code);
 
-        Token accessToken = new DeepinOAuthApiService(clientID, clientSecret).getTokenByAuthorizationCode(code, requestToken);
-
-        if (!accessToken.isEmpty()) {
-
-            DeepinAuthenticationToken auth = new DeepinAuthenticationToken(accessToken, clientID, clientSecret);
+        if (!token.accessToken.isEmpty()) {
+            DeepinAuthenticationToken auth = new DeepinAuthenticationToken(token, clientID, clientSecret);
             SecurityContextHolder.getContext().setAuthentication(auth);
-
             User u = User.current();
             u.setFullName(auth.getName());
-
         } else {
             LOGGER.log(Level.SEVERE, "doFinishLogin() accessToken = null");
         }
