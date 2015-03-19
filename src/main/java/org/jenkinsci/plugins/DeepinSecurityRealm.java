@@ -3,6 +3,7 @@ package org.jenkinsci.plugins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import hudson.model.User;
 import hudson.security.GroupDetails;
 import hudson.security.UserMayOrMayNotExistException;
@@ -11,6 +12,8 @@ import hudson.security.SecurityRealm;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletException;
 
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
@@ -29,6 +32,7 @@ import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 import org.springframework.dao.DataAccessException;
 
 import com.thoughtworks.xstream.converters.ConversionException;
@@ -121,6 +125,18 @@ public class DeepinSecurityRealm extends SecurityRealm {
         }
     }
 
+    @Override
+    public void doLogout(StaplerRequest req, StaplerResponse rsp)    throws IOException, ServletException {
+        String rootUrl = Hudson.getInstance().getRootUrl();
+        if (StringUtils.endsWith(rootUrl, "/")) {
+            rootUrl = StringUtils.left(rootUrl, StringUtils.length(rootUrl) - 1);
+        }
+        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(clientID, clientSecret);
+     	String logoutAPI = DeepinOAuthApiService.syncLogout(rootUrl);
+    	rsp.sendRedirect2(logoutAPI);
+    	super.doLogout(req, rsp);
+    }
+    
     @Override
     public SecurityComponents createSecurityComponents() {
         return new SecurityRealm.SecurityComponents(new AuthenticationManager() {

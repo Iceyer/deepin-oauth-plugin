@@ -20,10 +20,12 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 public class DeepinOAuthApiService {
-
-    private static final String UID_ENDPOINT = "https://api.linuxdeepin.com/users/uid/";
-    private static final String USER_ENDPOINT = "https://api.linuxdeepin.com/users/username/";
-    private static final String OAUTH2_API = "https://api.linuxdeepin.com/oauth2/";
+	
+	private static final String API_ROOT 			= "https://api.linuxdeepin.com";
+    private static final String UID_ENDPOINT 	= API_ROOT + "/users/uid/";
+    private static final String USER_ENDPOINT	= API_ROOT + "/users/username/";
+    private static final String OAUTH2_API 		= API_ROOT + "/oauth2/";
+    private static final String LOGOUT_API 		= API_ROOT + "/oauth2/logout";
    
     private String clientID;
     
@@ -40,7 +42,11 @@ public class DeepinOAuthApiService {
         }
         oauthCallback = rootUrl + "/securityRealm/finishLogin";
     }
-
+    
+    public String syncLogout(String callback) {
+    	return LOGOUT_API + "?callback=" + callback;
+    }
+    
     public String createOAutuorizeURL() {
     	return String.format("%s%s?response_type=%s&client_id=%s&scope=%s&redirect_uri=%s", 
     			OAUTH2_API, "authorize", "code", clientID, "base", oauthCallback);
