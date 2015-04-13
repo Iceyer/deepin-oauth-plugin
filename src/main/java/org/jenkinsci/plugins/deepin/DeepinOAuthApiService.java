@@ -20,22 +20,25 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 public class DeepinOAuthApiService {
-	
-	private static final String API_ROOT 			= "https://api.linuxdeepin.com";
-    private static final String UID_ENDPOINT 	= API_ROOT + "/users/uid/";
-    private static final String USER_ENDPOINT	= API_ROOT + "/users/username/";
-    private static final String OAUTH2_API 		= API_ROOT + "/oauth2/";
-    private static final String LOGOUT_API 		= API_ROOT + "/oauth2/logout";
-   
     private String clientID;
-    
     private String clientSecret;
-    
     private String oauthCallback;
-
-    public DeepinOAuthApiService(String apiKey, String apiSecret) {
-        clientID = apiKey;
-        clientSecret = apiSecret;
+    
+	private String apiRoot;
+    private String UID_ENDPOINT;
+    private String USER_ENDPOINT;
+    private String OAUTH2_API;
+    private String LOGOUT_API;
+   
+    public DeepinOAuthApiService(String host, String apiKey, String apiSecret) {
+        apiRoot = host;
+        UID_ENDPOINT 	= apiRoot + "/users/uid/";
+        USER_ENDPOINT	= apiRoot + "/users/username/";
+        OAUTH2_API 		= apiRoot + "/oauth2/";
+        LOGOUT_API 		= apiRoot + "/oauth2/logout";
+        
+    	clientID = apiKey;
+        clientSecret = apiSecret;       
         String rootUrl = Hudson.getInstance().getRootUrl();
         if (StringUtils.endsWith(rootUrl, "/")) {
             rootUrl = StringUtils.left(rootUrl, StringUtils.length(rootUrl) - 1);
