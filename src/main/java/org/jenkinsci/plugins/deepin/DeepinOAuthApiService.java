@@ -32,8 +32,8 @@ public class DeepinOAuthApiService {
    
     public DeepinOAuthApiService(String host, String apiKey, String apiSecret) {
         apiRoot = host;
-        UID_ENDPOINT 	= apiRoot + "/users/uid/";
-        USER_ENDPOINT	= apiRoot + "/users/username/";
+        UID_ENDPOINT 	= apiRoot + "/user/id/";
+        USER_ENDPOINT	= apiRoot + "/user/username/";
         OAUTH2_API 		= apiRoot + "/oauth2/";
         LOGOUT_API 		= apiRoot + "/oauth2/logout";
         
