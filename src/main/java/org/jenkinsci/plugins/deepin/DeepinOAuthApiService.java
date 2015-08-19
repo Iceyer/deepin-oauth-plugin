@@ -11,7 +11,7 @@ import java.net.URL;
 import org.acegisecurity.userdetails.UserDetails;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.deepin.DeepinUser.DeepinUserResponce;
+import org.jenkinsci.plugins.deepin.DeepinUser;
 import org.scribe.model.Request;
 import org.scribe.model.Response;
 import org.scribe.model.Verb;
@@ -24,19 +24,24 @@ public class DeepinOAuthApiService {
     private String clientSecret;
     private String oauthCallback;
     
+	private String loginRoot;
 	private String apiRoot;
+	
     private String UID_ENDPOINT;
     private String USER_ENDPOINT;
     private String OAUTH2_API;
     private String LOGOUT_API;
+    private String scope;
    
-    public DeepinOAuthApiService(String host, String apiKey, String apiSecret) {
-        apiRoot = host;
-        UID_ENDPOINT 	= apiRoot + "/user/id/";
-        USER_ENDPOINT	= apiRoot + "/user/username/";
-        OAUTH2_API 		= apiRoot + "/oauth2/";
-        LOGOUT_API 		= apiRoot + "/oauth2/logout";
+    public DeepinOAuthApiService(String loginHost, String apiHost, String apiKey, String apiSecret) {
+        loginRoot = loginHost;
+        apiRoot = apiHost;
         
+        UID_ENDPOINT 	= apiRoot + "/v1/user";
+        USER_ENDPOINT	= apiRoot + "/v1/users/";
+        OAUTH2_API 		= loginRoot + "/oauth2/";
+        LOGOUT_API 		= loginRoot + "/oauth2/logout";
+        scope = "base,user:read";
     	clientID = apiKey;
         clientSecret = apiSecret;       
         String rootUrl = Hudson.getInstance().getRootUrl();
@@ -52,7 +57,7 @@ public class DeepinOAuthApiService {
     
     public String createOAutuorizeURL() {
     	return String.format("%s%s?response_type=%s&client_id=%s&scope=%s&redirect_uri=%s", 
-    			OAUTH2_API, "authorize", "code", clientID, "base", oauthCallback);
+    			OAUTH2_API, "authorize", "code", clientID, scope, oauthCallback);
     }
     
     //"access_token":"ZmQxYmYzYjAtYWJlMS00NTVkLThkNTYtYmFjZjE5ODEwOTAz",
@@ -98,15 +103,15 @@ public class DeepinOAuthApiService {
     }
 
     public DeepinUser getUserByToken(DeepinToken token) {
-        Request request = new Request(Verb.GET, UID_ENDPOINT + String.format("%d", token.uid));
+        Request request = new Request(Verb.GET, UID_ENDPOINT);
         request.addHeader("Access-Token",  token.accessToken);
         Response response = request.send();
         String json = response.getBody();
         Gson gson = new Gson();
-        DeepinUserResponce userResponse = gson.fromJson(json, DeepinUserResponce.class);
+        DeepinUser userResponse = gson.fromJson(json, DeepinUser.class);
 
         if (userResponse != null) {
-            return userResponse.data;
+            return userResponse;
         } else {
             return null;
         }
@@ -114,24 +119,29 @@ public class DeepinOAuthApiService {
 
     public UserDetails getUserByUsername(String username) {
         InputStreamReader reader = null;
-        DeepinUserResponce userResponce = null;
+        DeepinUser userResponce = null;
+            System.out.println("FFFFFFFFFFFFFFFFFFFFKKKKKKKKKKKKKKKKKKKK");
         try {
             URL url = new URL(USER_ENDPOINT + username);
             reader = new InputStreamReader(url.openStream(), "UTF-8");
             Gson gson = new Gson();
-            userResponce = gson.fromJson(reader, DeepinUserResponce.class);
+            System.out.println(USER_ENDPOINT + username);
+            userResponce = gson.fromJson(reader, DeepinUser.class);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        	System.out.println(e);
+           // e.printStackTrace();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            System.out.println(e);
+           // e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e);
+            //e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(reader);
         }
-
+System.out.println("CCCCCCCCCCCCCCCCCCCCCcFFFFFFFFFFFFFFFFFFFFKKKKKKKKKKKKKKKKKKKK");
         if (userResponce != null) {
-            return userResponce.data;
+            return userResponce;
         } else {
             return null;
         }

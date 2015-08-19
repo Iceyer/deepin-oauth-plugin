@@ -15,9 +15,9 @@ public class DeepinAuthenticationToken extends AbstractAuthenticationToken {
     private DeepinUser deepinUser;
 
 	@SuppressWarnings("deprecation")
-	public DeepinAuthenticationToken(DeepinToken accessToken, String deepinidServer, String apiKey, String apiSecret) {
+	public DeepinAuthenticationToken(DeepinToken accessToken, String loginServer, String apiServer, String apiKey, String apiSecret) {
         this.accessToken = accessToken;
-        this.deepinUser = new DeepinOAuthApiService(deepinidServer, apiKey, apiSecret).getUserByToken(accessToken);
+        this.deepinUser = new DeepinOAuthApiService(loginServer, apiServer, apiKey, apiSecret).getUserByToken(accessToken);
 
         boolean authenticated = false;
 

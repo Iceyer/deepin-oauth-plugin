@@ -9,10 +9,6 @@ public class DeepinUser implements UserDetails {
 
 	private static final long serialVersionUID = 5131603161907134731L;
 
-	public class DeepinUserResponce {
-        public DeepinUser data;
-    }
-
     public String username;
     public String email;
     public String nickname;

@@ -48,15 +48,17 @@ public class DeepinSecurityRealm extends SecurityRealm {
   //  private static final String ACCESS_TOKEN_ATTRIBUTE = DeepinSecurityRealm.class.getName() + ".access_token";
     private static final Logger LOGGER = Logger.getLogger(DeepinSecurityRealm.class.getName());
 
-    private String deepinidServer;
+	private String loginServer;
+    private String apiServer;
     private String clientID;
     private String clientSecret;
     
 
     @DataBoundConstructor
-    public DeepinSecurityRealm(String deepinidServer, String clientID, String clientSecret) {
-        super();
-        this.deepinidServer = Util.fixEmptyAndTrim(deepinidServer);
+    public DeepinSecurityRealm(String loginServer, String apiServer, String clientID, String clientSecret) {
+        super();        
+        this.loginServer = Util.fixEmptyAndTrim(loginServer);
+        this.apiServer = Util.fixEmptyAndTrim(apiServer);
         this.clientID = Util.fixEmptyAndTrim(clientID);
         this.clientSecret = Util.fixEmptyAndTrim(clientSecret);
     }
@@ -67,17 +69,31 @@ public class DeepinSecurityRealm extends SecurityRealm {
     }
 
     /**
-     * @return the deepinidServer
+     * @return the loginServer
      */
-    public String getDeepinidServer() {
-        return deepinidServer;
+    public String getLoginServer() {
+        return loginServer;
     }
 
     /**
-     * @param deepinidServer the deepinidServer to set
+     * @param loginServer the loginServer to set
      */
-    public void setDeepinidServer(String deepinidServer) {
-        this.deepinidServer = deepinidServer;
+    public void setLoginServer(String loginServer) {
+        this.loginServer = loginServer;
+    }
+
+    /**
+     * @return the apiServer
+     */
+    public String getApiServer() {
+        return apiServer;
+    }
+
+    /**
+     * @param apiServer the apiServer to set
+     */
+    public void setApiServer(String loginServer) {
+        this.apiServer = apiServer;
     }
     
     /**
@@ -110,7 +126,7 @@ public class DeepinSecurityRealm extends SecurityRealm {
 
     public HttpResponse doCommenceLogin(StaplerRequest request, @Header("Referer") final String referer) throws IOException {
         request.getSession().setAttribute(REFERER_ATTRIBUTE, referer);
-        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(deepinidServer, clientID, clientSecret);
+        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(loginServer, apiServer, clientID, clientSecret);
         return new HttpRedirect(DeepinOAuthApiService.createOAutuorizeURL());
     }
 
@@ -122,10 +138,10 @@ public class DeepinSecurityRealm extends SecurityRealm {
             return HttpResponses.redirectToContextRoot();
         }
 
-        DeepinToken token = new DeepinOAuthApiService(deepinidServer, clientID, clientSecret).getTokenByAuthorizationCode(code);
+        DeepinToken token = new DeepinOAuthApiService(loginServer, apiServer, clientID, clientSecret).getTokenByAuthorizationCode(code);
 
         if (!token.accessToken.isEmpty()) {
-            DeepinAuthenticationToken auth = new DeepinAuthenticationToken(token, deepinidServer, clientID, clientSecret);
+            DeepinAuthenticationToken auth = new DeepinAuthenticationToken(token, loginServer, apiServer, clientID, clientSecret);
             SecurityContextHolder.getContext().setAuthentication(auth);
             User u = User.current();
             u.setFullName(auth.getName());
@@ -148,7 +164,7 @@ public class DeepinSecurityRealm extends SecurityRealm {
         if (StringUtils.endsWith(rootUrl, "/")) {
             rootUrl = StringUtils.left(rootUrl, StringUtils.length(rootUrl) - 1);
         }
-        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(deepinidServer, clientID, clientSecret);
+        DeepinOAuthApiService DeepinOAuthApiService = new DeepinOAuthApiService(loginServer, apiServer, clientID, clientSecret);
      	String logoutAPI = DeepinOAuthApiService.syncLogout(rootUrl);
     	rsp.sendRedirect2(logoutAPI);
     	super.doLogout(req, rsp);
@@ -178,7 +194,7 @@ public class DeepinSecurityRealm extends SecurityRealm {
         if (authToken == null) {
             throw new UsernameNotFoundException("DeepinAuthenticationToken = null, no known user: " + username);
         }
-        result = new DeepinOAuthApiService(deepinidServer, clientID, clientSecret).getUserByUsername(username);
+        result = new DeepinOAuthApiService(loginServer, apiServer, clientID, clientSecret).getUserByUsername(username);
         if (result == null) {
             throw new UsernameNotFoundException("User does not exist for login: " + username);
         }
@@ -210,8 +226,12 @@ public class DeepinSecurityRealm extends SecurityRealm {
 
             DeepinSecurityRealm realm = (DeepinSecurityRealm) source;
 
-            writer.startNode("deepinidServer");
-            writer.setValue(realm.getDeepinidServer());
+            writer.startNode("loginServer");
+            writer.setValue(realm.getLoginServer());
+            writer.endNode();
+            
+            writer.startNode("apiServer");
+            writer.setValue(realm.getApiServer());
             writer.endNode();
             
             writer.startNode("clientID");
@@ -269,8 +289,10 @@ public class DeepinSecurityRealm extends SecurityRealm {
                 realm.setClientID(value);
             } else if (node.equalsIgnoreCase("clientsecret")) {
                 realm.setClientSecret(value);
-            } else if (node.equalsIgnoreCase("deepinidserver")) {
-                realm.setDeepinidServer(value);
+            } else if (node.equalsIgnoreCase("loginserver")) {
+                realm.setLoginServer(value);
+            } else if (node.equalsIgnoreCase("apiserver")) {
+                realm.setApiServer(value);
             } else {
                 throw new ConversionException("invalid node value = " + node);
             }
