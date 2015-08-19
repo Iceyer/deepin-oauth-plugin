@@ -120,26 +120,20 @@ public class DeepinOAuthApiService {
     public UserDetails getUserByUsername(String username) {
         InputStreamReader reader = null;
         DeepinUser userResponce = null;
-            System.out.println("FFFFFFFFFFFFFFFFFFFFKKKKKKKKKKKKKKKKKKKK");
         try {
             URL url = new URL(USER_ENDPOINT + username);
             reader = new InputStreamReader(url.openStream(), "UTF-8");
             Gson gson = new Gson();
-            System.out.println(USER_ENDPOINT + username);
             userResponce = gson.fromJson(reader, DeepinUser.class);
         } catch (UnsupportedEncodingException e) {
-        	System.out.println(e);
-           // e.printStackTrace();
+            e.printStackTrace();
         } catch (MalformedURLException e) {
-            System.out.println(e);
-           // e.printStackTrace();
+            e.printStackTrace();
         } catch (IOException e) {
-            System.out.println(e);
-            //e.printStackTrace();
+            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(reader);
         }
-System.out.println("CCCCCCCCCCCCCCCCCCCCCcFFFFFFFFFFFFFFFFFFFFKKKKKKKKKKKKKKKKKKKK");
         if (userResponce != null) {
             return userResponce;
         } else {
