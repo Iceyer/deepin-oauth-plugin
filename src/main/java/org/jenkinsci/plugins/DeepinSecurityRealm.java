@@ -92,7 +92,7 @@ public class DeepinSecurityRealm extends SecurityRealm {
     /**
      * @param apiServer the apiServer to set
      */
-    public void setApiServer(String loginServer) {
+    public void setApiServer(String apiServer) {
         this.apiServer = apiServer;
     }
     
@@ -246,45 +246,43 @@ public class DeepinSecurityRealm extends SecurityRealm {
         public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
 
             String node = reader.getNodeName();
-
-            reader.moveDown();
-
             DeepinSecurityRealm realm = new DeepinSecurityRealm();
 
+            reader.moveDown();
             node = reader.getNodeName();
-
             String value = reader.getValue();
-
             setValue(realm, node, value);
-
             reader.moveUp();
 
             reader.moveDown();
-
             node = reader.getNodeName();
-
             value = reader.getValue();
-
             setValue(realm, node, value);
+            reader.moveUp();
 
+            reader.moveDown();
+            node = reader.getNodeName();
+            value = reader.getValue();
+            setValue(realm, node, value);
+            reader.moveUp();
+
+            reader.moveDown();
+            node = reader.getNodeName();
+            value = reader.getValue();
+            setValue(realm, node, value);
             reader.moveUp();
 
             if (reader.hasMoreChildren()) {
                 reader.moveDown();
-
                 node = reader.getNodeName();
-
                 value = reader.getValue();
-
                 setValue(realm, node, value);
-
                 reader.moveUp();
             }
             return realm;
         }
 
         private void setValue(DeepinSecurityRealm realm, String node, String value) {
-
             if (node.equalsIgnoreCase("clientid")) {
                 realm.setClientID(value);
             } else if (node.equalsIgnoreCase("clientsecret")) {
